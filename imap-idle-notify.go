@@ -76,6 +76,7 @@ var (
 
 	FromFilter            = envList("FROM_FILTER", "user@gmail.com,test@example.com")
 	DeleteAfterProcessing = envBool("DELETE_AFTER_PROCESSING", false)
+	IMAPFlag = env("IMAP_FLAG", "\\Seen")
 
 	CheckFrom = envBool("CHECK_FROM", true)
 	CheckCc   = envBool("CHECK_CC", false)
@@ -327,12 +328,12 @@ SEND:
 
 	sendNotification(sender, subject, bodyText)
 
-	// mark seen
+	// add flag
 	seqset := new(imap.SeqSet)
 	seqset.AddNum(msg.SeqNum)
-	flags := []interface{}{imap.SeenFlag}
+	flags := []interface{}{IMAPFlag}
 	if err := c.Store(seqset, imap.FormatFlagsOp(imap.AddFlags, true), flags, nil); err != nil {
-		log.Println("Failed to mark seen:", err)
+		log.Println("Failed to add flag:", err)
 	}
 
 	if DeleteAfterProcessing {
@@ -356,7 +357,7 @@ SEND:
 func fetchUnseen(c *client.Client, section *imap.BodySectionName) {
 	log.Println("Fetching unseen messages...")
 	criteria := imap.NewSearchCriteria()
-	criteria.WithoutFlags = []string{"\\Seen"}
+	criteria.WithoutFlags = []string{IMAPFlag, imap.SeenFlag}
 	ids, err := c.Search(criteria)
 	if err != nil || len(ids) == 0 {
 		return
