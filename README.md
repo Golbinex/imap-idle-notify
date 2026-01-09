@@ -54,6 +54,9 @@ NTFY_TOPIC=emails
 NTFY_AUTH_TOKEN=
 NTFY_PRIORITY=5#Message priority (1=min, 5=max)
 
+# Send the body of message to notification
+SEND_MESSAGE_BODY=true
+
 # Timezone
 TZ=UTC
 

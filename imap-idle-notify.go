@@ -94,6 +94,8 @@ var (
 	NtfyAuthToken  = env("NTFY_AUTH_TOKEN", "")
 	NtfyPriority   = envInt("NTFY_PRIORITY", 5)
 
+	SendMessageBody = envBool("SEND_MESSAGE_BODY", true)
+
 	AllowedFrom = make(map[string]bool)
 )
 
@@ -281,37 +283,39 @@ func processMessage(c *client.Client, msg *imap.Message, section *imap.BodySecti
 			return
 		}
 	}
-	r := msg.GetBody(section)
-	if r == nil {
-		return
-	}
-
-	mr, err := mail.CreateReader(r)
-	if err != nil {
-		log.Println("Mail read error:", err)
-		return
-	}
-
 	var bodyText string
-	for {
-		p, err := mr.NextPart()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Println("Part read error:", err)
-			break
+	if SendMessageBody {
+		r := msg.GetBody(section)
+		if r == nil {
+			return
 		}
 
-		switch h := p.Header.(type) {
-		case *mail.InlineHeader:
-			ct, _, _ := h.ContentType()
-			data, _ := io.ReadAll(io.LimitReader(p.Body, 10240))
-			if strings.HasPrefix(ct, "text/plain") {
-				bodyText = string(data)
-				goto SEND
-			} else if strings.HasPrefix(ct, "text/html") && bodyText == "" {
-				bodyText = htmlToText(string(data))
+		mr, err := mail.CreateReader(r)
+		if err != nil {
+			log.Println("Mail read error:", err)
+			return
+		}
+
+		for {
+			p, err := mr.NextPart()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Println("Part read error:", err)
+				break
+			}
+
+			switch h := p.Header.(type) {
+			case *mail.InlineHeader:
+				ct, _, _ := h.ContentType()
+				data, _ := io.ReadAll(io.LimitReader(p.Body, 10240))
+				if strings.HasPrefix(ct, "text/plain") {
+					bodyText = string(data)
+					goto SEND
+				} else if strings.HasPrefix(ct, "text/html") && bodyText == "" {
+					bodyText = htmlToText(string(data))
+				}
 			}
 		}
 	}
