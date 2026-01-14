@@ -53,6 +53,7 @@ NTFY_URL=https://ntfy.sh
 NTFY_TOPIC=emails
 NTFY_AUTH_TOKEN=
 NTFY_PRIORITY=5#Message priority (1=min, 5=max)
+NTFY_CLICK_ACTION=k9mail://messages
 
 # Send the body of message to notification
 SEND_MESSAGE_BODY=true

@@ -93,6 +93,7 @@ var (
 	NtfyTopic      = env("NTFY_TOPIC", "")
 	NtfyAuthToken  = env("NTFY_AUTH_TOKEN", "")
 	NtfyPriority   = envInt("NTFY_PRIORITY", 5)
+	NtfyClickAction = env("NTFY_CLICK_ACTION", "")
 
 	SendMessageBody = envBool("SEND_MESSAGE_BODY", true)
 
@@ -210,6 +211,9 @@ func sendNtfy(sender, subject, body string) {
 	req.Header.Set("Priority", strconv.Itoa(NtfyPriority))
 	if NtfyAuthToken != "" {
 		req.Header.Set("Authorization", "Bearer "+NtfyAuthToken)
+	}
+	if NtfyClickAction != "" {
+		req.Header.Set("Click", NtfyClickAction)
 	}
 
 	resp, err := httpClient.Do(req)
