@@ -196,7 +196,7 @@ func sendGotify(sender, subject, body string) {
 	}
 }
 
-func sendNtfy(sender, subject, body string) {
+func sendNtfy(sender, subject, body string, id uint32) {
 	url := fmt.Sprintf("%s/%s", NtfyUrl, NtfyTopic)
 	message := fmt.Sprintf("From: %s\nSubject: %s\n\n%s", sender, subject, body)
 
@@ -213,7 +213,7 @@ func sendNtfy(sender, subject, body string) {
 		req.Header.Set("Authorization", "Bearer "+NtfyAuthToken)
 	}
 	if NtfyClickAction != "" {
-		req.Header.Set("Click", NtfyClickAction)
+		req.Header.Set("Click", NtfyClickAction+strconv.FormatUint(uint64(id), 10))
 	}
 
 	resp, err := httpClient.Do(req)
@@ -230,10 +230,10 @@ func sendNtfy(sender, subject, body string) {
 	}
 }
 
-func sendNotification(sender, subject, body string) {
+func sendNotification(sender, subject, body string, id uint32) {
 	switch NotifierType {
 	case "ntfy":
-		sendNtfy(sender, subject, body)
+		sendNtfy(sender, subject, body, id)
 	default:
 		sendGotify(sender, subject, body)
 	}
@@ -334,7 +334,7 @@ SEND:
 		sender = strings.ToLower(msg.Envelope.From[0].MailboxName + "@" + msg.Envelope.From[0].HostName)
 	}
 
-	sendNotification(sender, subject, bodyText)
+	sendNotification(sender, subject, bodyText, msg.SeqNum)
 
 	// add flag
 	seqset := new(imap.SeqSet)
